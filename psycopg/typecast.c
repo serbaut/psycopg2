@@ -690,3 +690,56 @@ typecast_cast(PyObject *obj, const char *str, Py_ssize_t len, PyObject *curs)
 
     return res;
 }
+
+#ifdef VERTICA
+
+/* vertica uses different builtin oids for some reason */
+
+static long int vertica_LONGINTEGER_types[] = {6, 0};
+static long int vertica_FLOAT_types[] = {7, 0};
+static long int vertica_DECIMAL_types[] = {16, 0};
+static long int vertica_UNICODE_types[] = {8, 9};
+static long int vertica_BOOLEAN_types[] = {5, 0};
+static long int vertica_DATETIME_types[] = {12, 13, 0};
+static long int vertica_TIME_types[] = {11, 15};
+static long int vertica_DATE_types[] = {10, 0};
+static long int vertica_INTERVAL_types[] = {14, 0};
+
+static typecastObject_initlist typecast_vertica[] = {
+    {"LONGINTEGER", vertica_LONGINTEGER_types, typecast_LONGINTEGER_cast, NULL},
+    {"FLOAT", vertica_FLOAT_types, typecast_FLOAT_cast, NULL},
+    {"DECIMAL", vertica_DECIMAL_types, typecast_DECIMAL_cast, NULL},
+    {"UNICODE", vertica_UNICODE_types, typecast_UNICODE_cast, NULL},
+    {"BOOLEAN", vertica_BOOLEAN_types, typecast_BOOLEAN_cast, NULL},
+    {"DATETIME", vertica_DATETIME_types, typecast_DATETIME_cast, NULL},
+    {"TIME", vertica_TIME_types, typecast_TIME_cast, NULL},
+    {"DATE", vertica_DATE_types, typecast_DATE_cast, NULL},
+    {"INTERVAL", vertica_INTERVAL_types, typecast_INTERVAL_cast, NULL},
+    {NULL, NULL, NULL, NULL}
+};
+
+int typecast_init_vertica(PyObject *dict)
+{
+    int i;
+    int rv = -1;
+    typecastObject *t = NULL;
+
+    for (i = 0; typecast_vertica[i].name != NULL; i++) {
+        Dprintf("typecast_init_vertica: initializing %s", typecast_vertica[i].name);
+
+        t = (typecastObject *)typecast_from_c(&(typecast_vertica[i]), dict);
+        if (t == NULL) { goto exit; }
+        if (typecast_add((PyObject *)t, NULL, 0) < 0) { goto exit; }
+
+        PyDict_SetItem(dict, t->name, (PyObject *)t);
+        Py_DECREF((PyObject *)t);
+        t = NULL;
+    }
+
+    rv = 0;
+
+exit:
+    Py_XDECREF((PyObject *)t);
+    return rv;
+}
+#endif

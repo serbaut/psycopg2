@@ -373,6 +373,15 @@ exit:
     return rv;
 }
 
+#ifdef VERTICA
+extern int typecast_init_vertica(PyObject *dict);
+
+static int
+conn_is_vertica(connectionObject *self)
+{
+    return self->server_version == 0 && self->protocol == 3; /* vertica 5/6 reports version 0, proto 3 */
+}
+#endif
 
 RAISES_NEG int
 conn_get_isolation_level(connectionObject *self)
@@ -387,6 +396,11 @@ conn_get_isolation_level(connectionObject *self)
     if (self->autocommit) {
         return 0;
     }
+#ifdef VERTICA
+    if (conn_is_vertica(self)) {
+        return ISOLATION_LEVEL_READ_COMMITTED;
+    }
+#endif
 
     Py_BEGIN_ALLOW_THREADS;
     pthread_mutex_lock(&self->lock);
@@ -493,6 +507,15 @@ conn_setup(connectionObject *self, PGconn *pgconn)
         PyErr_SetString(InterfaceError, "only protocol 3 supported");
         return -1;
     }
+
+#ifdef VERTICA
+    if (conn_is_vertica(self)) {
+	self->autocommit = 0;
+	if (0 > psycopg_strdup(&self->encoding, "UTF8", strlen("UTF8"))) { return -1; }
+	if (0 > psycopg_strdup(&self->codec, "utf_8", strlen("utf_8"))) { return -1; }
+	return typecast_init_vertica(self->string_types);
+    }
+#endif
 
     if (0 > conn_read_encoding(self, pgconn)) {
         return -1;

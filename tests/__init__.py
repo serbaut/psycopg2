@@ -44,6 +44,7 @@ import test_quote
 import test_transaction
 import test_types_basic
 import test_types_extras
+import test_vertica
 
 if sys.version_info[:2] >= (2, 5):
     import test_with
@@ -83,6 +84,7 @@ def test_suite():
     suite.addTest(test_types_extras.test_suite())
     if test_with:
         suite.addTest(test_with.test_suite())
+    suite.addTest(test_vertica.test_suite())
     return suite
 
 if __name__ == '__main__':
