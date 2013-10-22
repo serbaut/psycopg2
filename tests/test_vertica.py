@@ -11,10 +11,10 @@ from testconfig import dsn
 class VerticaTests(unittest.TestCase):
 
     def setUp(self):
-        dbhost = os.environ.get('PSYCOPG2_TESTVERICA_HOST', 'localhost')
-        dbport = os.environ.get('PSYCOPG2_TESTVERICA_PORT', '5433')
-        dbuser = os.environ.get('PSYCOPG2_TESTVERICA_USER', 'psycopg2')
-        dbpass = os.environ.get('PSYCOPG2_TESTVERICA_PASSWORD', None)
+        dbhost = os.environ.get('PSYCOPG2_TESTVERTICA_HOST', 'localhost')
+        dbport = os.environ.get('PSYCOPG2_TESTVERTICA_PORT', '5433')
+        dbuser = os.environ.get('PSYCOPG2_TESTVERTICA_USER', 'psycopg2')
+        dbpass = os.environ.get('PSYCOPG2_TESTVERTICA_PASSWORD', None)
         try:
             self.conn = psycopg2.connect(host=dbhost, user=dbuser, password=dbpass, port=dbport)
         except psycopg2.OperationalError, e:
